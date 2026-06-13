@@ -3,7 +3,7 @@ function App() {
     <>
       <div>
 
-        <h1>Portfolio Status Board</h1>
+        <h1>WIP</h1>
 
       </div>
       
