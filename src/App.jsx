@@ -2,8 +2,8 @@ function App() {
   return (
     <>
       <div>
-      
-        <h1>Portfolio Status Board banner</h1>
+
+        <h1>Portfolio Status Board</h1>
 
       </div>
       
