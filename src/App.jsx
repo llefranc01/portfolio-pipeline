@@ -1,7 +1,9 @@
+import './assets/App.css'
+
 function App() {
   return (
     <>
-      <div>
+      <div className="module">
 
         <h1>Portfolio Status Board</h1>
 
