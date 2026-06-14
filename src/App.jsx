@@ -1,12 +1,25 @@
+import './assets/App.css'
+import { Routes, Route, NavLink } from 'react-router-dom'
+import Home from './pages/Home'
+import About from './pages/About'
+
 function App() {
   return (
     <>
-      <div>
+      <nav className="navbar">
+        <div className="nav-brand">My Portfolio</div>
+        <div className="nav-links">
+          <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Home</NavLink>
+          <NavLink to="/about" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>About</NavLink>
+        </div>
+      </nav>
 
-        <h1>WIP</h1>
-
-      </div>
-      
+      <main className="module">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+        </Routes>
+      </main>
     </>
   )
 }
