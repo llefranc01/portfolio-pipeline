@@ -15,6 +15,7 @@ function App() {
       </nav>
 
       <main className="module">
+      <h1>Welcome to My Portfolio</h1>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
