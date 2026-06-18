@@ -61,5 +61,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
+      - name: Use API key
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        run: |
+          echo "Deploying with key: $API_KEY"
       - name: Simulate production deploy
         run: echo "Deploying to production environment..."
