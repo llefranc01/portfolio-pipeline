@@ -1,4 +1,5 @@
 import './assets/App.css'
+import './assets/Home.css'
 import { Routes, Route, NavLink } from 'react-router-dom'
 import Resume from './pages/Resume'
 import About from './pages/About'

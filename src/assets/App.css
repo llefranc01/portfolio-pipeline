@@ -24,6 +24,8 @@ body {
 
 .module {
     border-radius: 10px;
+    height: 100%;
+    width: 100%;
     display: flex;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
