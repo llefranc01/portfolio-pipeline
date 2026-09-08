@@ -1,26 +1,5 @@
 import React, { useState } from "react";
 
-// ------------------------------------------------------------------
-// Shares the resume page's token system: paper/ink palette, Fraunces
-// + IBM Plex Sans/Mono, teal accent, amber for the "gate" moment.
-// ------------------------------------------------------------------
-const tokens = {
-  paper: "#F7F5F0",
-  paperRaised: "#FFFFFF",
-  ink: "#1B2430",
-  inkSoft: "#4A5160",
-  muted: "#8A8F98",
-  rule: "#DCD7CA",
-  teal: "#0F7173",
-  tealSoft: "#E4F1F0",
-  amber: "#B8842E",
-  amberSoft: "#F5EBD8",
-};
-
-const fontImport = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-`;
-
 // cdn.simpleicons.org serves single-color brand mark SVGs — used here
 // the way a "built with" badge row would be, not as reproduced artwork.
 const icon = (slug, hex) => `https://cdn.simpleicons.org/${slug}/${hex}`;
@@ -139,51 +118,39 @@ export default function TechStack() {
   const [openNode, setOpenNode] = useState(STAGES[0].nodes[0]);
 
   return (
-    <div style={styles.page}>
-      <style>{fontImport}</style>
-      <style>{css}</style>
+    <div className="tech-page">
 
-      <div style={styles.wrap}>
-        <header style={styles.header}>
-          <div style={styles.eyebrow}>System diagram</div>
-          <h1 style={styles.title}>How this site gets built &amp; shipped</h1>
-          <p style={styles.subtitle}>
+      <div className="tech-wrap">
+        <header className="tech-header">
+          <div className="tech-eyebrow">System diagram</div>
+          <h1 className="tech-title">How this site gets built &amp; shipped</h1>
+          <p className="tech-subtitle">
             Every push runs through the same automated checks, then a
             branch-gated deploy. Click any node for details — the dashed
             column is set up but not yet wired into CI.
           </p>
         </header>
 
-        <div style={styles.pipeline}>
+        <div className="tech-pipeline">
           {STAGES.map((stage, si) => (
             <React.Fragment key={stage.id}>
               <div
-                style={{
-                  ...styles.stageCol,
-                  ...(stage.dashed ? styles.stageColDashed : {}),
-                }}
+                className={`tech-stage-col${stage.dashed ? " dashed" : ""}`}
               >
-                <div style={styles.stageHead}>
-                  <span style={styles.stageIndex}>{stage.index}</span>
+                <div className="tech-stage-head">
+                  <span className="tech-stage-index">{stage.index}</span>
                   <div>
-                    <div style={styles.stageTitle}>{stage.title}</div>
-                    <div style={styles.stageSubtitle}>{stage.subtitle}</div>
+                    <div className="tech-stage-title">{stage.title}</div>
+                    <div className="tech-stage-subtitle">{stage.subtitle}</div>
                   </div>
                 </div>
 
-                <div style={styles.nodeStack}>
+                <div className="tech-node-stack">
                   {stage.nodes.map((node) => (
                     <button
                       key={node.name}
                       onClick={() => setOpenNode(node)}
-                      className="stack-node"
-                      style={{
-                        ...styles.node,
-                        ...(node.gate ? styles.nodeGate : {}),
-                        ...(openNode?.name === node.name
-                          ? styles.nodeActive
-                          : {}),
-                      }}
+                      className={`tech-node${node.gate ? " gate" : ""}${openNode?.name === node.name ? " active" : ""}`}
                     >
                       {node.icon ? (
                         <img
@@ -191,16 +158,11 @@ export default function TechStack() {
                           alt=""
                           width={18}
                           height={18}
-                          style={styles.nodeIcon}
+                          className="tech-node-icon"
                         />
                       ) : (
                         <span
-                          style={{
-                            ...styles.nodeDot,
-                            background: node.gate
-                              ? tokens.amber
-                              : tokens.teal,
-                          }}
+                          className={`tech-node-dot${node.gate ? " gate" : ""}`}
                         />
                       )}
                       <span>{node.name}</span>
@@ -210,17 +172,17 @@ export default function TechStack() {
               </div>
 
               {si < STAGES.length - 1 && (
-                <div style={styles.connector} aria-hidden="true">
+                <div className="tech-connector" aria-hidden="true">
                   <svg width="28" height="18" viewBox="0 0 28 18" fill="none">
                     <line
                       x1="0"
                       y1="9"
                       x2="20"
                       y2="9"
-                      stroke={tokens.rule}
+                      stroke="currentColor"
                       strokeWidth="1.5"
                     />
-                    <path d="M20 3L26 9L20 15" stroke={tokens.rule} strokeWidth="1.5" fill="none" />
+                    <path d="M20 3L26 9L20 15" stroke="currentColor" strokeWidth="1.5" fill="none" />
                   </svg>
                 </div>
               )}
@@ -230,21 +192,21 @@ export default function TechStack() {
 
         {/* Detail panel */}
         {openNode && (
-          <div style={styles.detailPanel}>
-            <div style={styles.detailHead}>
+          <div className="tech-detail-panel">
+            <div className="tech-detail-head">
               {openNode.icon && (
                 <img src={openNode.icon} alt="" width={22} height={22} />
               )}
-              <span style={styles.detailName}>{openNode.name}</span>
+              <span className="tech-detail-name">{openNode.name}</span>
               {openNode.gate && (
-                <span style={styles.gateBadge}>Human checkpoint</span>
+                <span className="tech-gate-badge">Human checkpoint</span>
               )}
             </div>
-            <p style={styles.detailText}>{openNode.detail}</p>
+            <p className="tech-detail-text">{openNode.detail}</p>
           </div>
         )}
 
-        <footer style={styles.footer}>
+        <footer className="tech-footer">
           Brand marks shown are simplified single-color icons used to
           indicate tools in use, not reproductions of official brand
           artwork. Deploy steps are currently placeholders (no live
@@ -257,9 +219,8 @@ export default function TechStack() {
 }
 
 // ------------------------------------------------------------------
-// Styles
-// ------------------------------------------------------------------
-const styles = {
+// Styles are centralized in assets/App.css.
+/*
   page: {
     minHeight: "100vh",
     background: tokens.paper,
@@ -427,8 +388,4 @@ const styles = {
     marginTop: 40,
   },
 };
-
-const css = `
-  * { box-sizing: border-box; }
-  .stack-node:hover { border-color: ${tokens.teal}; }
-`;
+*/
