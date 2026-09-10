@@ -1,26 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-
-// ------------------------------------------------------------------
-// Design tokens
-// Paper/ink palette with a mono "changelog" motif — each job entry
-// reads like a release note: a version-tagged range, diff-style
-// bullet markers, and a monospace index rail for navigation.
-// ------------------------------------------------------------------
-const tokens = {
-  paper: "#F7F5F0",
-  paperRaised: "#FFFFFF",
-  ink: "#1B2430",
-  inkSoft: "#4A5160",
-  muted: "#8A8F98",
-  rule: "#DCD7CA",
-  teal: "#0F7173",
-  tealSoft: "#E4F1F0",
-  amber: "#B8842E",
-};
-
-const fontImport = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-`;
+import { useState, useEffect, useRef } from "react";
 
 // ------------------------------------------------------------------
 // Content — drawn from resume
@@ -32,7 +10,7 @@ const CONTACT = {
   phone: "(408) 596-6578",
   location: "Sunnyvale, CA 94086",
   github: "https://github.com/llefranc01",
-  linkedin: "#", // TODO: add your LinkedIn URL
+  linkedin: "https://www.linkedin.com/in/landen-lefrancois-8120a2a4/",
 };
 
 const SUMMARY =
@@ -184,51 +162,45 @@ export default function Resume() {
   };
 
   return (
-    <div style={styles.page}>
-      <style>{fontImport}</style>
-      <style>{css}</style>
+    <div className="resume-page">
 
-      <div style={styles.shell}>
+      <div className="resume-shell">
         {/* ---------------- Sidebar ---------------- */}
-        <aside style={styles.sidebar}>
-          <div style={styles.sidebarInner}>
+        <aside className="resume-sidebar">
+          <div className="resume-sidebar-inner">
             <div>
-              <div style={styles.eyebrow}>Software Engineer</div>
-              <h1 style={styles.name}>{CONTACT.name}</h1>
-              <p style={styles.tagline}>
+              <div className="resume-eyebrow">Software Engineer</div>
+              <h1 className="resume-name">{CONTACT.name}</h1>
+              <p className="resume-tagline">
                 Full-stack &amp; low-code platform engineering — React,
                 React Native, Mendix.
               </p>
             </div>
 
-            <nav style={styles.nav} aria-label="Section navigation">
+            <nav className="resume-nav" aria-label="Section navigation">
               {SECTIONS.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => scrollTo(s.id)}
-                  className="nav-link"
-                  style={{
-                    ...styles.navLink,
-                    ...(active === s.id ? styles.navLinkActive : {}),
-                  }}
+                  className={`resume-nav-link${active === s.id ? " active" : ""}`}
                 >
-                  <span style={styles.navIndex}>{s.index}</span>
+                  <span className="resume-nav-index">{s.index}</span>
                   {s.label}
                 </button>
               ))}
             </nav>
 
-            <div style={styles.contactBlock}>
-              <a style={styles.contactLine} href={`mailto:${CONTACT.email}`}>
+            <div className="resume-contact-block">
+              <a className="resume-contact-line" href={`mailto:${CONTACT.email}`}>
                 {CONTACT.email}
               </a>
-              <a style={styles.contactLine} href={`tel:${CONTACT.phone}`}>
+              <a className="resume-contact-line" href={`tel:${CONTACT.phone}`}>
                 {CONTACT.phone}
               </a>
-              <span style={styles.contactLine}>{CONTACT.location}</span>
-              <div style={styles.contactLinks}>
+              <span className="resume-contact-line">{CONTACT.location}</span>
+              <div className="resume-contact-links">
                 <a
-                  style={styles.contactPill}
+                  className="resume-contact-pill"
                   href={CONTACT.github}
                   target="_blank"
                   rel="noreferrer"
@@ -236,7 +208,7 @@ export default function Resume() {
                   GitHub ↗
                 </a>
                 <a
-                  style={styles.contactPill}
+                  className="resume-contact-pill"
                   href={CONTACT.linkedin}
                   target="_blank"
                   rel="noreferrer"
@@ -249,31 +221,31 @@ export default function Resume() {
         </aside>
 
         {/* ---------------- Main content ---------------- */}
-        <main style={styles.main}>
+        <main className="resume-main">
           {/* Summary */}
           <section
             id="summary"
             ref={(el) => (refs.current.summary = el)}
-            style={styles.section}
+            className="resume-section"
           >
             <SectionHeader index="00" title="Summary" />
-            <p style={styles.summaryText}>{SUMMARY}</p>
+            <p className="resume-summary-text">{SUMMARY}</p>
           </section>
 
           {/* Skills */}
           <section
             id="skills"
             ref={(el) => (refs.current.skills = el)}
-            style={styles.section}
+            className="resume-section"
           >
             <SectionHeader index="01" title="Technical Proficiencies" />
-            <div style={styles.skillGrid}>
+            <div className="resume-skill-grid">
               {SKILLS.map((group) => (
-                <div key={group.label} style={styles.skillGroup}>
-                  <div style={styles.skillLabel}>{group.label}</div>
-                  <div style={styles.chipRow}>
+                <div key={group.label} className="resume-skill-group">
+                  <div className="resume-skill-label">{group.label}</div>
+                  <div className="resume-chip-row">
                     {group.items.map((item) => (
-                      <span key={item} style={styles.chip}>
+                      <span key={item} className="resume-chip">
                         {item}
                       </span>
                     ))}
@@ -287,25 +259,25 @@ export default function Resume() {
           <section
             id="experience"
             ref={(el) => (refs.current.experience = el)}
-            style={styles.section}
+            className="resume-section"
           >
             <SectionHeader index="02" title="Career Experience" />
-            <div style={styles.changelog}>
+            <div className="resume-changelog">
               {EXPERIENCE.map((job) => (
-                <article key={job.company} style={styles.entry}>
-                  <div style={styles.entryHead}>
+                <article key={job.company} className="resume-entry">
+                  <div className="resume-entry-head">
                     <div>
-                      <h3 style={styles.entryCompany}>{job.company}</h3>
-                      <div style={styles.entryRole}>
+                      <h3 className="resume-entry-company">{job.company}</h3>
+                      <div className="resume-entry-role">
                         {job.role} · {job.location}
                       </div>
                     </div>
-                    <span style={styles.versionTag}>{job.range}</span>
+                    <span className="resume-version-tag">{job.range}</span>
                   </div>
-                  <ul style={styles.diffList}>
+                  <ul className="resume-diff-list">
                     {job.bullets.map((b, i) => (
-                      <li key={i} style={styles.diffItem}>
-                        <span style={styles.diffMarker}>+</span>
+                      <li key={i} className="resume-diff-item">
+                        <span className="resume-diff-marker">+</span>
                         <span>{b}</span>
                       </li>
                     ))}
@@ -319,15 +291,15 @@ export default function Resume() {
           <section
             id="education"
             ref={(el) => (refs.current.education = el)}
-            style={styles.section}
+            className="resume-section"
           >
             <SectionHeader index="03" title="Education" />
-            <div style={styles.eduCard}>
+            <div className="resume-edu-card">
               <div>
-                <div style={styles.entryCompany}>{EDUCATION.degree}</div>
-                <div style={styles.entryRole}>{EDUCATION.school}</div>
+                <div className="resume-entry-company">{EDUCATION.degree}</div>
+                <div className="resume-entry-role">{EDUCATION.school}</div>
               </div>
-              <span style={styles.versionTag}>{EDUCATION.year}</span>
+              <span className="resume-version-tag">{EDUCATION.year}</span>
             </div>
           </section>
 
@@ -335,22 +307,22 @@ export default function Resume() {
           <section
             id="projects"
             ref={(el) => (refs.current.projects = el)}
-            style={{ ...styles.section, borderBottom: "none" }}
+            className="resume-section resume-section-last"
           >
             <SectionHeader index="04" title="Key Projects" />
-            <ul style={styles.diffList}>
+            <ul className="resume-diff-list">
               {PROJECTS.map((p, i) => (
-                <li key={i} style={styles.diffItem}>
-                  <span style={styles.diffMarker}>+</span>
+                <li key={i} className="resume-diff-item">
+                  <span className="resume-diff-marker">+</span>
                   <span>{p}</span>
                 </li>
               ))}
             </ul>
           </section>
 
-          <footer style={styles.footer}>
+          <footer className="resume-footer">
             Built with React · Vite · Bootstrap · Docker — see the{" "}
-            <a href="#/stack" style={styles.footerLink}>
+            <a href="#/stack" className="resume-footer-link">
               tech stack page
             </a>
             .
@@ -363,278 +335,10 @@ export default function Resume() {
 
 function SectionHeader({ index, title }) {
   return (
-    <div style={styles.sectionHeader}>
-      <span style={styles.sectionIndex}>{index}</span>
-      <h2 style={styles.sectionTitle}>{title}</h2>
-      <span style={styles.sectionRule} />
+    <div className="resume-section-header">
+      <span className="resume-section-index">{index}</span>
+      <h2 className="resume-section-title">{title}</h2>
+      <span className="resume-section-rule" />
     </div>
   );
 }
-
-// ------------------------------------------------------------------
-// Styles
-// ------------------------------------------------------------------
-const styles = {
-  page: {
-    minHeight: "100vh",
-    background: tokens.paper,
-    color: tokens.ink,
-    fontFamily: "'IBM Plex Sans', sans-serif",
-  },
-  shell: {
-    maxWidth: 1180,
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "flex-start",
-  },
-  sidebar: {
-    width: 300,
-    flexShrink: 0,
-    position: "sticky",
-    top: 0,
-    height: "100vh",
-    borderRight: `1px solid ${tokens.rule}`,
-    padding: "56px 32px",
-    boxSizing: "border-box",
-    display: "flex",
-  },
-  sidebarInner: {
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    height: "100%",
-    width: "100%",
-  },
-  eyebrow: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 11,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: tokens.teal,
-    fontWeight: 600,
-    marginBottom: 10,
-  },
-  name: {
-    fontFamily: "'Fraunces', serif",
-    fontSize: 34,
-    fontWeight: 500,
-    lineHeight: 1.12,
-    margin: "0 0 14px 0",
-    letterSpacing: "-0.01em",
-  },
-  tagline: {
-    fontSize: 14,
-    color: tokens.inkSoft,
-    lineHeight: 1.55,
-    margin: 0,
-  },
-  nav: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    margin: "40px 0",
-  },
-  navLink: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    background: "none",
-    border: "none",
-    textAlign: "left",
-    cursor: "pointer",
-    padding: "8px 10px",
-    borderRadius: 4,
-    fontSize: 14,
-    color: tokens.inkSoft,
-    fontFamily: "'IBM Plex Sans', sans-serif",
-  },
-  navLinkActive: {
-    background: tokens.tealSoft,
-    color: tokens.teal,
-    fontWeight: 600,
-  },
-  navIndex: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 11,
-    color: tokens.muted,
-    width: 18,
-  },
-  contactBlock: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-    paddingTop: 24,
-    borderTop: `1px solid ${tokens.rule}`,
-  },
-  contactLine: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 12.5,
-    color: tokens.inkSoft,
-    textDecoration: "none",
-  },
-  contactLinks: {
-    display: "flex",
-    gap: 8,
-    marginTop: 8,
-  },
-  contactPill: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 11.5,
-    color: tokens.teal,
-    border: `1px solid ${tokens.teal}`,
-    borderRadius: 20,
-    padding: "5px 12px",
-    textDecoration: "none",
-  },
-  main: {
-    flex: 1,
-    minWidth: 0,
-    padding: "64px 56px 40px",
-    boxSizing: "border-box",
-  },
-  section: {
-    paddingBottom: 48,
-    marginBottom: 48,
-    borderBottom: `1px solid ${tokens.rule}`,
-  },
-  sectionHeader: {
-    display: "flex",
-    alignItems: "baseline",
-    gap: 14,
-    marginBottom: 22,
-  },
-  sectionIndex: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 12,
-    color: tokens.amber,
-    fontWeight: 600,
-  },
-  sectionTitle: {
-    fontFamily: "'Fraunces', serif",
-    fontSize: 22,
-    fontWeight: 500,
-    margin: 0,
-    whiteSpace: "nowrap",
-  },
-  sectionRule: {
-    flex: 1,
-    height: 1,
-    background: tokens.rule,
-  },
-  summaryText: {
-    fontSize: 16,
-    lineHeight: 1.75,
-    color: tokens.inkSoft,
-    maxWidth: 640,
-    margin: 0,
-  },
-  skillGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "28px 40px",
-  },
-  skillGroup: {},
-  skillLabel: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 11.5,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase",
-    color: tokens.muted,
-    marginBottom: 10,
-  },
-  chipRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  chip: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 12.5,
-    background: tokens.paperRaised,
-    border: `1px solid ${tokens.rule}`,
-    borderRadius: 5,
-    padding: "5px 10px",
-    color: tokens.ink,
-  },
-  changelog: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 36,
-  },
-  entry: {},
-  entryHead: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-    gap: 16,
-  },
-  entryCompany: {
-    fontFamily: "'Fraunces', serif",
-    fontSize: 18,
-    fontWeight: 500,
-    margin: "0 0 4px 0",
-  },
-  entryRole: {
-    fontSize: 13.5,
-    color: tokens.inkSoft,
-  },
-  versionTag: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 12,
-    color: tokens.teal,
-    background: tokens.tealSoft,
-    borderRadius: 4,
-    padding: "4px 9px",
-    whiteSpace: "nowrap",
-    flexShrink: 0,
-  },
-  diffList: {
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: 9,
-  },
-  diffItem: {
-    display: "flex",
-    gap: 10,
-    fontSize: 14.5,
-    lineHeight: 1.6,
-    color: tokens.inkSoft,
-  },
-  diffMarker: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    color: tokens.teal,
-    fontWeight: 600,
-    flexShrink: 0,
-  },
-  eduCard: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    background: tokens.paperRaised,
-    border: `1px solid ${tokens.rule}`,
-    borderRadius: 8,
-    padding: "20px 24px",
-    maxWidth: 640,
-  },
-  footer: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 12,
-    color: tokens.muted,
-    marginTop: 16,
-  },
-  footerLink: {
-    color: tokens.teal,
-  },
-};
-
-const css = `
-  * { box-sizing: border-box; }
-  .nav-link:hover { background: ${tokens.tealSoft}; color: ${tokens.teal}; }
-  @media (max-width: 860px) {
-    .nav-link { }
-  }
-`;
