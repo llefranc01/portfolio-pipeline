@@ -5,7 +5,11 @@ import React, { useState } from "react";
 const icon = (slug, hex) => `https://cdn.simpleicons.org/${slug}/${hex}`;
 
 // ------------------------------------------------------------------
-// Pipeline data — five stages, left to right / top to bottom on mobile
+// Pipeline data — four stages, left to right (scrolls sideways on
+// narrow screens). Mirrors .github/workflows/ci.yml job order:
+// test-and-build → build-and-push-image → deploy-staging/production.
+// A stage can set `dashed: true` to mark something that exists in the
+// repo but isn't wired into CI yet.
 // ------------------------------------------------------------------
 const STAGES = [
   {
@@ -13,7 +17,6 @@ const STAGES = [
     index: "00",
     title: "Author",
     subtitle: "Local development",
-    kind: "stage",
     nodes: [
       {
         name: "React 19",
@@ -51,68 +54,73 @@ const STAGES = [
     id: "build",
     index: "01",
     title: "Build & test",
-    subtitle: "GitHub Actions job",
-    kind: "stage",
+    subtitle: "test-and-build job",
     nodes: [
       {
         name: "GitHub Actions",
         icon: icon("githubactions", "2088FF"),
         detail:
-          "Workflow triggers on every push to any branch and on every pull request. The test-and-build job checks out the repo, sets up Node 22, installs dependencies, runs the Vitest suite, then builds with Vite. The static output is uploaded as a build artifact for the deploy jobs to reuse.",
+          "Workflow triggers on every push to any branch and on every pull request. The test-and-build job checks out the repo, sets up Node 22, installs dependencies, lints, runs the Vitest suite, then builds with Vite. The static output is uploaded as a build artifact.",
       },
       {
         name: "Node 22 + Vitest",
         icon: icon("nodedotjs", "339933"),
         detail:
-          "`npm install` → `npm test` (Vitest) → `npm run build`. Tests must pass before the build step runs, and the build must succeed before any deploy job is allowed to start.",
+          "`npm install` → `npm run lint` (ESLint) → `npm test` (Vitest) → `npm run build`. Each step must pass before the next runs, and this whole job must succeed before an image is built.",
+      },
+    ],
+  },
+  {
+    id: "image",
+    index: "02",
+    title: "Container image",
+    subtitle: "build-and-push-image job",
+    nodes: [
+      {
+        name: "Docker",
+        icon: icon("docker", "2496ED"),
+        detail:
+          "Runs only on pushes to develop and master. Builds the repo's multi-stage Dockerfile (Node build stage → nginx serve stage) with Docker Buildx, using the GitHub Actions cache to speed up repeat builds.",
+      },
+      {
+        name: "nginx",
+        icon: icon("nginx", "009639"),
+        detail:
+          "Serves the static Vite build in the image's final stage. Its config falls back to index.html for unknown paths, so client-side routes like /stack survive a refresh or a deep link.",
+      },
+      {
+        name: "GHCR",
+        icon: icon("github", "1B2430"),
+        detail:
+          "The image is pushed to GitHub Container Registry as ghcr.io/llefranc01/portfolio-pipeline, authenticated with the workflow's built-in GITHUB_TOKEN (packages: write). Each push gets two tags: <branch> (moves with every build) and <branch>-<short sha> (fixed, for pinning and rollback).",
       },
     ],
   },
   {
     id: "deploy",
-    index: "02",
+    index: "03",
     title: "Deploy",
     subtitle: "Branch-gated, currently simulated",
-    kind: "gate",
     nodes: [
       {
         name: "Staging (develop)",
         icon: null,
         detail:
-          "Runs only when the push is on the develop branch. Downloads the build artifact and currently just echoes a placeholder deploy message — no real hosting target is wired in yet.",
+          "Runs only when the push is on the develop branch, after the image is pushed. It receives the exact <branch>-<sha> image tag but currently just echoes a placeholder deploy message — no real hosting target is wired in yet.",
       },
       {
         name: "Production (master)",
         icon: null,
         gate: true,
         detail:
-          "Runs only when the push is on master, and uses a `production` GitHub Environment — the hook GitHub uses for required-reviewer approval rules. Whether that protection rule is actually turned on depends on your repo's Settings → Environments config, which isn't visible from the workflow file itself. Like staging, the actual deploy step is a placeholder echo for now.",
-      },
-    ],
-  },
-  {
-    id: "containerize",
-    index: "03",
-    title: "Docker (not yet wired in)",
-    subtitle: "Exists in repo, unused by CI",
-    kind: "stage",
-    dashed: true,
-    nodes: [
-      {
-        name: "Docker",
-        icon: icon("docker", "2496ED"),
-        detail:
-          "A multi-stage Dockerfile is in the repo (Node build stage → nginx serve stage), but the GitHub Actions workflow doesn't build or push an image — it builds with plain Vite and ships the dist folder as a raw artifact. This is set up for containerized deployment but not yet connected to the pipeline.",
-      },
-      {
-        name: "nginx",
-        icon: icon("nginx", "009639"),
-        detail:
-          "Serves the static build in the Dockerfile's final stage — ready to use once/if the image gets built and deployed somewhere (a registry, a host running Docker, etc.).",
+          "Runs only when the push is on master, after the image is pushed, and uses a `production` GitHub Environment — the hook GitHub uses for required-reviewer approval rules. Whether that protection rule is actually turned on depends on your repo's Settings → Environments config, which isn't visible from the workflow file itself. Like staging, the actual deploy step is a placeholder echo for now.",
       },
     ],
   },
 ];
+
+const nodeId = (name) =>
+  `node-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
 export default function TechStack() {
   const [openNode, setOpenNode] = useState(STAGES[0].nodes[0]);
@@ -125,51 +133,76 @@ export default function TechStack() {
           <div className="tech-eyebrow">System diagram</div>
           <h1 className="tech-title">How this site gets built &amp; shipped</h1>
           <p className="tech-subtitle">
-            Every push runs through the same automated checks, then a
-            branch-gated deploy. Click any node for details — the dashed
-            column is set up but not yet wired into CI.
+            Every push runs through the same automated checks; pushes to
+            develop and master also publish a container image, then hit a
+            branch-gated deploy. Select any node for details.
           </p>
         </header>
 
-        <div className="tech-pipeline">
+        <div className="tech-pipeline" role="list" aria-label="Pipeline stages">
           {STAGES.map((stage, si) => (
             <React.Fragment key={stage.id}>
-              <div
+              <section
+                role="listitem"
+                aria-labelledby={`stage-${stage.id}`}
                 className={`tech-stage-col${stage.dashed ? " dashed" : ""}`}
               >
                 <div className="tech-stage-head">
-                  <span className="tech-stage-index">{stage.index}</span>
+                  <span className="tech-stage-index" aria-hidden="true">
+                    {stage.index}
+                  </span>
                   <div>
-                    <div className="tech-stage-title">{stage.title}</div>
+                    <h2 id={`stage-${stage.id}`} className="tech-stage-title">
+                      {stage.title}
+                    </h2>
                     <div className="tech-stage-subtitle">{stage.subtitle}</div>
                   </div>
                 </div>
 
                 <div className="tech-node-stack">
-                  {stage.nodes.map((node) => (
-                    <button
-                      key={node.name}
-                      onClick={() => setOpenNode(node)}
-                      className={`tech-node${node.gate ? " gate" : ""}${openNode?.name === node.name ? " active" : ""}`}
-                    >
-                      {node.icon ? (
-                        <img
-                          src={node.icon}
-                          alt=""
-                          width={18}
-                          height={18}
-                          className="tech-node-icon"
-                        />
-                      ) : (
-                        <span
-                          className={`tech-node-dot${node.gate ? " gate" : ""}`}
-                        />
-                      )}
-                      <span>{node.name}</span>
-                    </button>
-                  ))}
+                  {stage.nodes.map((node) => {
+                    const isOpen = openNode?.name === node.name;
+                    return (
+                      <button
+                        type="button"
+                        key={node.name}
+                        id={nodeId(node.name)}
+                        onClick={() => setOpenNode(node)}
+                        aria-pressed={isOpen}
+                        aria-controls="tech-detail"
+                        className={`tech-node${node.gate ? " gate" : ""}${isOpen ? " active" : ""}`}
+                      >
+                        {/* Icons sit next to the visible tool name, so they
+                            are decorative: alt="" keeps screen readers from
+                            announcing the name twice. */}
+                        {node.icon ? (
+                          <img
+                            src={node.icon}
+                            alt=""
+                            width={18}
+                            height={18}
+                            className="tech-node-icon"
+                          />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className={`tech-node-dot${node.gate ? " gate" : ""}`}
+                          />
+                        )}
+                        <span>{node.name}</span>
+                        {node.gate && (
+                          <>
+                            {" "}
+                            <span className="visually-hidden">
+                              (human checkpoint)
+                            </span>
+                          </>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              </div>
+              </section>
 
               {si < STAGES.length - 1 && (
                 <div className="tech-connector" aria-hidden="true">
@@ -190,14 +223,20 @@ export default function TechStack() {
           ))}
         </div>
 
-        {/* Detail panel */}
+        {/* Detail panel — announced politely when the selection changes */}
         {openNode && (
-          <div className="tech-detail-panel">
+          <div
+            id="tech-detail"
+            className="tech-detail-panel"
+            role="region"
+            aria-label="Node details"
+            aria-live="polite"
+          >
             <div className="tech-detail-head">
               {openNode.icon && (
                 <img src={openNode.icon} alt="" width={22} height={22} />
               )}
-              <span className="tech-detail-name">{openNode.name}</span>
+              <h3 className="tech-detail-name">{openNode.name}</h3>
               {openNode.gate && (
                 <span className="tech-gate-badge">Human checkpoint</span>
               )}
@@ -217,175 +256,3 @@ export default function TechStack() {
     </div>
   );
 }
-
-// ------------------------------------------------------------------
-// Styles are centralized in assets/App.css.
-/*
-  page: {
-    minHeight: "100vh",
-    background: tokens.paper,
-    color: tokens.ink,
-    fontFamily: "'IBM Plex Sans', sans-serif",
-    padding: "64px 24px",
-    boxSizing: "border-box",
-  },
-  wrap: {
-    maxWidth: 1100,
-    margin: "0 auto",
-  },
-  header: {
-    marginBottom: 48,
-    maxWidth: 620,
-  },
-  eyebrow: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 11,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: tokens.teal,
-    fontWeight: 600,
-    marginBottom: 10,
-  },
-  title: {
-    fontFamily: "'Fraunces', serif",
-    fontSize: 32,
-    fontWeight: 500,
-    margin: "0 0 12px 0",
-    letterSpacing: "-0.01em",
-  },
-  subtitle: {
-    fontSize: 15,
-    color: tokens.inkSoft,
-    lineHeight: 1.6,
-    margin: 0,
-  },
-  pipeline: {
-    display: "flex",
-    alignItems: "flex-start",
-    overflowX: "auto",
-    paddingBottom: 8,
-    marginBottom: 32,
-  },
-  stageCol: {
-    width: 190,
-    flexShrink: 0,
-  },
-  stageColDashed: {
-    opacity: 0.72,
-    border: `1px dashed ${tokens.rule}`,
-    borderRadius: 10,
-    padding: "12px 14px",
-    marginLeft: -14,
-  },
-  stageHead: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 8,
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottom: `1px solid ${tokens.rule}`,
-  },
-  stageIndex: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 11,
-    color: tokens.amber,
-    fontWeight: 600,
-    marginTop: 2,
-  },
-  stageTitle: {
-    fontFamily: "'Fraunces', serif",
-    fontSize: 16,
-    fontWeight: 500,
-  },
-  stageSubtitle: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 10.5,
-    color: tokens.muted,
-    marginTop: 2,
-  },
-  nodeStack: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  node: {
-    display: "flex",
-    alignItems: "center",
-    gap: 9,
-    background: tokens.paperRaised,
-    border: `1px solid ${tokens.rule}`,
-    borderRadius: 7,
-    padding: "9px 12px",
-    fontSize: 13,
-    color: tokens.ink,
-    fontFamily: "'IBM Plex Sans', sans-serif",
-    cursor: "pointer",
-    textAlign: "left",
-    width: "100%",
-  },
-  nodeGate: {
-    borderStyle: "dashed",
-    borderColor: tokens.amber,
-    background: tokens.amberSoft,
-  },
-  nodeActive: {
-    borderColor: tokens.teal,
-    boxShadow: `0 0 0 1px ${tokens.teal}`,
-  },
-  nodeIcon: {
-    flexShrink: 0,
-  },
-  nodeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: "50%",
-    flexShrink: 0,
-  },
-  connector: {
-    display: "flex",
-    alignItems: "center",
-    height: 32,
-    marginTop: 44,
-    flexShrink: 0,
-  },
-  detailPanel: {
-    background: tokens.paperRaised,
-    border: `1px solid ${tokens.rule}`,
-    borderRadius: 10,
-    padding: "22px 26px",
-    maxWidth: 640,
-  },
-  detailHead: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 10,
-  },
-  detailName: {
-    fontFamily: "'Fraunces', serif",
-    fontSize: 18,
-    fontWeight: 500,
-  },
-  gateBadge: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 10.5,
-    color: tokens.amber,
-    background: tokens.amberSoft,
-    borderRadius: 20,
-    padding: "3px 10px",
-    marginLeft: 4,
-  },
-  detailText: {
-    fontSize: 14.5,
-    lineHeight: 1.65,
-    color: tokens.inkSoft,
-    margin: 0,
-  },
-  footer: {
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: 11,
-    color: tokens.muted,
-    marginTop: 40,
-  },
-};
-*/

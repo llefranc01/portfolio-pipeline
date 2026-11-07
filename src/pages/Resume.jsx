@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { ROUTES } from "../routes";
 
 // ------------------------------------------------------------------
 // Content — drawn from resume
 // ------------------------------------------------------------------
+
+// TODO: confirm or replace with your LinkedIn profile URL. Set to ""
+// to hide the LinkedIn pill entirely.
+const LINKEDIN_URL = "https://www.linkedin.com/in/landen-lefrancois-8120a2a4/";
+
 const CONTACT = {
   name: "Landen Lefrancois",
   title: "Software Engineer",
@@ -10,7 +17,7 @@ const CONTACT = {
   phone: "(408) 596-6578",
   location: "Sunnyvale, CA 94086",
   github: "https://github.com/llefranc01",
-  linkedin: "https://www.linkedin.com/in/landen-lefrancois-8120a2a4/",
+  linkedin: LINKEDIN_URL,
 };
 
 const SUMMARY =
@@ -142,6 +149,9 @@ const SECTIONS = [
 // ------------------------------------------------------------------
 export default function Resume() {
   const [active, setActive] = useState("summary");
+  // Only meaningful under the 860px breakpoint, where the sidebar
+  // collapses to a top bar and contact details hide behind a toggle.
+  const [contactOpen, setContactOpen] = useState(false);
   const refs = useRef({});
 
   useEffect(() => {
@@ -158,39 +168,65 @@ export default function Resume() {
   }, []);
 
   const scrollTo = (id) => {
-    refs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const reduceMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const el = refs.current[id];
+    el?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "start",
+    });
+    // Move keyboard focus with the scroll so Tab continues from the
+    // section the user jumped to, not from the sidebar button.
+    el?.focus({ preventScroll: true });
   };
 
   return (
     <div className="resume-page">
 
       <div className="resume-shell">
-        {/* ---------------- Sidebar ---------------- */}
-        <aside className="resume-sidebar">
+        {/* ---------------- Sidebar (top bar under 860px) ---------------- */}
+        <aside className="resume-sidebar" aria-label="Profile and sections">
           <div className="resume-sidebar-inner">
-            <div>
+            <div className="resume-identity">
               <div className="resume-eyebrow">Software Engineer</div>
               <h1 className="resume-name">{CONTACT.name}</h1>
               <p className="resume-tagline">
                 Full-stack &amp; low-code platform engineering — React,
                 React Native, Mendix.
               </p>
+              <button
+                type="button"
+                className="resume-contact-toggle"
+                aria-expanded={contactOpen}
+                aria-controls="resume-contact"
+                onClick={() => setContactOpen((open) => !open)}
+              >
+                {contactOpen ? "Hide contact" : "Contact"}
+              </button>
             </div>
 
-            <nav className="resume-nav" aria-label="Section navigation">
+            <nav className="resume-nav" aria-label="Resume sections">
               {SECTIONS.map((s) => (
                 <button
+                  type="button"
                   key={s.id}
                   onClick={() => scrollTo(s.id)}
+                  aria-current={active === s.id ? "location" : undefined}
                   className={`resume-nav-link${active === s.id ? " active" : ""}`}
                 >
-                  <span className="resume-nav-index">{s.index}</span>
+                  <span className="resume-nav-index" aria-hidden="true">
+                    {s.index}
+                  </span>
                   {s.label}
                 </button>
               ))}
             </nav>
 
-            <div className="resume-contact-block">
+            <div
+              id="resume-contact"
+              className={`resume-contact-block${contactOpen ? " open" : ""}`}
+            >
               <a className="resume-contact-line" href={`mailto:${CONTACT.email}`}>
                 {CONTACT.email}
               </a>
@@ -199,34 +235,23 @@ export default function Resume() {
               </a>
               <span className="resume-contact-line">{CONTACT.location}</span>
               <div className="resume-contact-links">
-                <a
-                  className="resume-contact-pill"
-                  href={CONTACT.github}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  GitHub ↗
-                </a>
-                <a
-                  className="resume-contact-pill"
-                  href={CONTACT.linkedin}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  LinkedIn ↗
-                </a>
+                <ExternalPill href={CONTACT.github}>GitHub</ExternalPill>
+                {CONTACT.linkedin && (
+                  <ExternalPill href={CONTACT.linkedin}>LinkedIn</ExternalPill>
+                )}
               </div>
             </div>
           </div>
         </aside>
 
         {/* ---------------- Main content ---------------- */}
-        <main className="resume-main">
+        <div className="resume-main">
           {/* Summary */}
           <section
             id="summary"
             ref={(el) => (refs.current.summary = el)}
             className="resume-section"
+            tabIndex={-1}
           >
             <SectionHeader index="00" title="Summary" />
             <p className="resume-summary-text">{SUMMARY}</p>
@@ -237,6 +262,7 @@ export default function Resume() {
             id="skills"
             ref={(el) => (refs.current.skills = el)}
             className="resume-section"
+            tabIndex={-1}
           >
             <SectionHeader index="01" title="Technical Proficiencies" />
             <div className="resume-skill-grid">
@@ -260,6 +286,7 @@ export default function Resume() {
             id="experience"
             ref={(el) => (refs.current.experience = el)}
             className="resume-section"
+            tabIndex={-1}
           >
             <SectionHeader index="02" title="Career Experience" />
             <div className="resume-changelog">
@@ -277,7 +304,7 @@ export default function Resume() {
                   <ul className="resume-diff-list">
                     {job.bullets.map((b, i) => (
                       <li key={i} className="resume-diff-item">
-                        <span className="resume-diff-marker">+</span>
+                        <span className="resume-diff-marker" aria-hidden="true">+</span>
                         <span>{b}</span>
                       </li>
                     ))}
@@ -292,6 +319,7 @@ export default function Resume() {
             id="education"
             ref={(el) => (refs.current.education = el)}
             className="resume-section"
+            tabIndex={-1}
           >
             <SectionHeader index="03" title="Education" />
             <div className="resume-edu-card">
@@ -308,12 +336,13 @@ export default function Resume() {
             id="projects"
             ref={(el) => (refs.current.projects = el)}
             className="resume-section resume-section-last"
+            tabIndex={-1}
           >
             <SectionHeader index="04" title="Key Projects" />
             <ul className="resume-diff-list">
               {PROJECTS.map((p, i) => (
                 <li key={i} className="resume-diff-item">
-                  <span className="resume-diff-marker">+</span>
+                  <span className="resume-diff-marker" aria-hidden="true">+</span>
                   <span>{p}</span>
                 </li>
               ))}
@@ -322,12 +351,12 @@ export default function Resume() {
 
           <footer className="resume-footer">
             Built with React · Vite · Bootstrap · Docker — see the{" "}
-            <a href="#/stack" className="resume-footer-link">
+            <Link to={ROUTES.stack} className="resume-footer-link">
               tech stack page
-            </a>
+            </Link>
             .
           </footer>
-        </main>
+        </div>
       </div>
     </div>
   );
@@ -336,9 +365,30 @@ export default function Resume() {
 function SectionHeader({ index, title }) {
   return (
     <div className="resume-section-header">
-      <span className="resume-section-index">{index}</span>
+      <span className="resume-section-index" aria-hidden="true">
+        {index}
+      </span>
       <h2 className="resume-section-title">{title}</h2>
-      <span className="resume-section-rule" />
+      <span className="resume-section-rule" aria-hidden="true" />
     </div>
+  );
+}
+
+// The ↗ glyph is visual only; screen readers hear "(opens in a new tab)".
+function ExternalPill({ href, children }) {
+  return (
+    <a
+      className="resume-contact-pill"
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+    >
+      {children}
+      {/* The space is a bare text node so it survives accessible-name
+          computation; a space inside a span gets trimmed. */}
+      {" "}
+      <span aria-hidden="true">↗</span>
+      <span className="visually-hidden">(opens in a new tab)</span>
+    </a>
   );
 }
