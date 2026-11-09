@@ -1,25 +1,22 @@
 import './assets/App.css'
-import './assets/Home.css'
-import { Routes, Route, NavLink } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import SiteNav from './components/SiteNav'
+import { ROUTES } from './routes'
 import Resume from './pages/Resume'
-import About from './pages/About'
 import TechStack from './pages/TechStack'
 
 function App() {
   return (
     <>
-      <nav className="navbar">
-        <div className="nav-brand">My Portfolio</div>
-        <div className="nav-links">
-          <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Home</NavLink>
-          <NavLink to="/TechStack" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>About</NavLink>
-        </div>
-      </nav>
+      <SiteNav />
 
-      <main className="module">
+      <main id="main" className="site-main" tabIndex={-1}>
         <Routes>
-          <Route path="/" element={<Resume />} />
-          <Route path="/TechStack" element={<TechStack />} />
+          <Route path={ROUTES.resume} element={<Resume />} />
+          <Route path={ROUTES.stack} element={<TechStack />} />
+          {/* Old path kept working for any links already shared. */}
+          <Route path="/TechStack" element={<Navigate to={ROUTES.stack} replace />} />
+          <Route path="*" element={<Navigate to={ROUTES.resume} replace />} />
         </Routes>
       </main>
     </>
