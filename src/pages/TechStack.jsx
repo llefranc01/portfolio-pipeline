@@ -40,7 +40,7 @@ const STAGES = [
         name: "Bootstrap 5",
         icon: icon("bootstrap", "7952B3"),
         detail:
-          "Base grid and responsive utilities used across the site shell.",
+          "Bootstrap's grid and utility layers (not the full framework, so its Reboot and component styles don't override the paper/ink design). The site header uses container-xl and flex utilities, the skills section is a responsive row/col grid (one column on phones, two from 576px), lists and chips use spacing helpers, and its visually-hidden classes power the screen-reader text and the skip link.",
       },
       {
         name: "Vitest",
@@ -100,20 +100,26 @@ const STAGES = [
     id: "deploy",
     index: "03",
     title: "Deploy",
-    subtitle: "Branch-gated, currently simulated",
+    subtitle: "Live on Vercel",
     nodes: [
+      {
+        name: "Vercel",
+        icon: icon("vercel", "1B2430"),
+        detail:
+          "Hosts the live site. Vercel's GitHub integration watches the repo: a push to master builds the site with Vite and publishes it to production, and pushes to other branches get their own preview URL. A vercel.json rewrite sends every path to index.html, so client-side routes like /stack load directly. Vercel builds from the repo itself, separately from GitHub Actions, so a production deploy doesn't currently wait for CI to pass.",
+      },
       {
         name: "Staging (develop)",
         icon: null,
         detail:
-          "Runs only when the push is on the develop branch, after the image is pushed. It receives the exact <branch>-<sha> image tag but currently just echoes a placeholder deploy message — no real hosting target is wired in yet.",
+          "GitHub Actions job that runs only on the develop branch, after the image is pushed. It receives the exact <branch>-<sha> image tag but only echoes a placeholder message; Vercel's preview deployments are the real staging step today.",
       },
       {
         name: "Production (master)",
         icon: null,
         gate: true,
         detail:
-          "Runs only when the push is on master, after the image is pushed, and uses a `production` GitHub Environment — the hook GitHub uses for required-reviewer approval rules. Whether that protection rule is actually turned on depends on your repo's Settings → Environments config, which isn't visible from the workflow file itself. Like staging, the actual deploy step is a placeholder echo for now.",
+          "GitHub Actions job that runs only on master, after the image is pushed, and uses a `production` GitHub Environment — the hook GitHub uses for required-reviewer approval rules. Whether that protection rule is turned on depends on the repo's Settings → Environments config, which isn't visible from the workflow file. The job itself is a placeholder echo; the live production deploy is done by Vercel.",
       },
     ],
   },
@@ -134,8 +140,8 @@ export default function TechStack() {
           <h1 className="tech-title">How this site gets built &amp; shipped</h1>
           <p className="tech-subtitle">
             Every push runs through the same automated checks; pushes to
-            develop and master also publish a container image, then hit a
-            branch-gated deploy. Select any node for details.
+            develop and master also publish a container image. The live
+            site is deployed by Vercel. Select any node for details.
           </p>
         </header>
 
@@ -248,9 +254,10 @@ export default function TechStack() {
         <footer className="tech-footer">
           Brand marks shown are simplified single-color icons used to
           indicate tools in use, not reproductions of official brand
-          artwork. Deploy steps are currently placeholders (no live
-          hosting target yet), and the production approval gate depends
-          on repo environment settings not visible in the workflow file.
+          artwork. The site is hosted on Vercel; the GitHub Actions
+          staging and production jobs are still placeholders, and the
+          production approval gate depends on repo environment settings
+          not visible in the workflow file.
         </footer>
       </div>
     </div>

@@ -2,10 +2,12 @@
 
 My personal portfolio site, and also a small working example of a CI/CD pipeline.
 
+**Live:** https://personalportfoliowebsite-seven.vercel.app/
+
 The site has two pages:
 
 - **Resume** (`/`): an interactive résumé laid out like a changelog. A sticky sidebar navigates between sections; under ~860px it collapses into a top bar.
-- **Tech Stack** (`/stack`): a clickable diagram of how this site gets built and shipped. Every node in the diagram matches a real step in [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+- **Tech Stack** (`/stack`): a clickable diagram of how this site gets built and shipped. Its nodes match the real steps in [`.github/workflows/ci.yml`](.github/workflows/ci.yml), plus the Vercel deploy.
 
 ## Stack
 
@@ -13,11 +15,12 @@ The site has two pages:
 | --------- | ----- |
 | UI        | React 19, React Router 6 |
 | Build     | Vite 8 |
-| Styling   | Plain CSS with design tokens ([`src/assets/App.css`](src/assets/App.css)); Bootstrap 5 is installed but not currently imported |
+| Styling   | Design tokens and component CSS in [`src/assets/App.css`](src/assets/App.css), plus Bootstrap 5's grid and utility layers (no Reboot or components) |
 | Tests     | Vitest 4, Testing Library, jsdom |
 | Lint      | ESLint 10 (React Hooks + React Refresh rules) |
 | Container | Multi-stage Dockerfile: Node 22 build stage, then an nginx static server |
 | CI/CD     | GitHub Actions, GitHub Container Registry (GHCR) |
+| Hosting   | Vercel |
 
 ## Run locally
 
@@ -68,8 +71,14 @@ push / PR (any branch)
 
 - Each job runs only if the previous one succeeded. A failing lint or test stops everything after it.
 - The workflow defaults to read-only permissions. Only the image job gets `packages: write`, so it can push to GHCR with the built-in `GITHUB_TOKEN`.
-- **The deploy jobs are placeholders.** They print which image they would deploy, but no hosting target is set up yet.
+- **The `deploy-*` jobs are placeholders.** They print which image they would deploy; the real deploy is done by Vercel (below).
+
+## Hosting (Vercel)
+
+The live site is deployed by Vercel's GitHub integration, not by the workflow above. A push to `master` builds the site with Vite and publishes it to production; other branches get preview URLs. [`vercel.json`](vercel.json) rewrites every path to `index.html` so client-side routes like `/stack` load directly.
+
+Vercel builds from the repo on its own, so a production deploy doesn't currently wait for CI to pass.
 
 ## Branching
 
-Day-to-day work happens on `develop`, which goes to staging. Changes reach `master` (production) through pull requests.
+Day-to-day work happens on `develop`. Changes reach `master`, and therefore production, through pull requests.

@@ -9,17 +9,22 @@ const LINKS = [
 export default function SiteNav() {
   return (
     <header className="site-header">
-      <a className="skip-link" href="#main">
+      {/* Bootstrap's visually-hidden-focusable hides the link until it
+          receives keyboard focus; .skip-link only styles the shown state. */}
+      <a className="skip-link visually-hidden-focusable" href="#main">
         Skip to content
       </a>
-      <nav className="site-nav" aria-label="Primary">
+      <nav
+        className="site-nav container-xl d-flex align-items-center justify-content-between gap-3"
+        aria-label="Primary"
+      >
         {/* Monogram rather than the full name: the Resume page's own
             <h1> already shows it right below the header. */}
         <NavLink to={ROUTES.resume} end className="site-brand">
           <span aria-hidden="true">LL</span>
           <span className="visually-hidden">Landen Lefrancois, home</span>
         </NavLink>
-        <ul className="site-nav-links">
+        <ul className="d-flex gap-1 list-unstyled m-0">
           {LINKS.map(({ to, label, end }) => (
             <li key={to}>
               {/* NavLink sets aria-current="page" on the active link

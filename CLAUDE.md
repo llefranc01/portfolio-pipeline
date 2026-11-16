@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A personal portfolio site (React 19 + Vite) that also shows off its own CI/CD pipeline. It has two routes: the Resume page at `/` and the Tech Stack page at `/stack`. The Tech Stack page is an interactive diagram of `.github/workflows/ci.yml`. **When you change the workflow, update the `STAGES` data in `src/pages/TechStack.jsx` to match, and the reverse.** Tests check the stage order and which stage each node belongs to.
+A personal portfolio site (React 19 + Vite) that also shows off its own CI/CD pipeline. It has two routes: the Resume page at `/` and the Tech Stack page at `/stack`. The Tech Stack page is an interactive diagram of `.github/workflows/ci.yml` plus the Vercel deploy. The live site is https://personalportfoliowebsite-seven.vercel.app/. **When you change the workflow, update the `STAGES` data in `src/pages/TechStack.jsx` to match, and the reverse.** Tests check the stage order and which stage each node belongs to.
 
 ## Commands
 
@@ -26,8 +26,9 @@ CI runs on Node 22.
 ## Architecture
 
 - **Routing.** `src/main.jsx` wraps the app in `BrowserRouter`. Route paths are defined once in `src/routes.js` (`ROUTES`). `App.jsx`, `components/SiteNav.jsx` and the Resume footer link all import from there, so don't hard-code paths. `/TechStack` redirects to `/stack` for old links, and unknown paths redirect to `/`. `src/pages/Home.jsx` and `About.jsx` are leftover placeholders and aren't routed.
-- **Deep links need the nginx fallback.** Because the app uses `BrowserRouter`, `nginx.conf` (copied into the image by the Dockerfile) uses `try_files … /index.html`. Without it, refreshing `/stack` in the container returns a 404.
-- **Styling.** Almost all styles live in `src/assets/App.css`, using class prefixes `site-*` (shared header and nav), `resume-*` and `tech-*`. The pages used to set styles inline; don't bring those back. `src/index.css` is only a minimal global reset (it replaced the Vite starter CSS). Bootstrap is listed in `package.json` but isn't imported anywhere.
+- **Deep links need an index.html fallback on every host.** Because the app uses `BrowserRouter`, `/stack` has no file on disk. `vercel.json` rewrites all paths to `/index.html` for Vercel, and `nginx.conf` (copied into the image by the Dockerfile) does the same with `try_files` for Docker. Without them, refreshing `/stack` returns a 404. If you add a host, add its fallback too.
+- **Styling.** Almost all styles live in `src/assets/App.css`, using class prefixes `site-*` (shared header and nav), `resume-*` and `tech-*`. The pages used to set styles inline; don't bring those back. `src/index.css` is only a minimal global reset (it replaced the Vite starter CSS).
+- **Bootstrap.** `main.jsx` imports only `bootstrap-grid` and `bootstrap-utilities`, which are opt-in classes with no global resets. Don't switch to the full `bootstrap.css`: its Reboot and component styles would restyle fonts, headings, links and buttons. Bootstrap is used for layout: `container-xl` plus flex utilities in `SiteNav`, a `row`/`col-*` grid in the Resume skills section, spacing and list helpers, and `visually-hidden` / `visually-hidden-focusable` (the skip link). Bootstrap's utilities use `!important`, so don't put `d-*` classes on elements whose `display` App.css changes in a media query.
 - **Resume page responsive layout.** Above 860px, the sidebar (name, section nav, contact) is sticky on the left. Under 860px it becomes a sticky top bar below the site header, and the contact details hide behind a `Contact` toggle (`aria-expanded`, `.open` class). An `IntersectionObserver` sets which section is active. Clicking a section button calls `scrollIntoView` and moves focus to that section (the sections have `tabIndex={-1}`).
 - **Tech Stack page.** All content comes from the `STAGES` array. A node with `gate: true` gets the amber "human checkpoint" style. A stage with `dashed: true` is drawn as "exists in the repo but not wired into CI" (no stage uses this right now). Clicking a node updates the `aria-live` detail panel (`#tech-detail`). Under 720px the pipeline stacks vertically.
 
@@ -41,7 +42,7 @@ CI runs on Node 22.
 
 ## Accessibility conventions
 
-- Hide text visually but keep it for screen readers with the `.visually-hidden` class. When it follows visible text, put the separating space in a bare `{" "}` text node **outside** the span. A space inside the span is dropped when the browser computes the accessible name, giving e.g. "GitHub(opens in a new tab)".
+- Hide text visually but keep it for screen readers with Bootstrap's `.visually-hidden` class. When it follows visible text, put the separating space in a bare `{" "}` text node **outside** the span. A space inside the span is dropped when the browser computes the accessible name, giving e.g. "GitHub(opens in a new tab)".
 - Icons next to a visible label use `alt=""`. Decorative glyphs (`↗`, `+`, index numbers, the connector SVG) use `aria-hidden`.
 - There must be exactly one `<main>` (`#main` in `App.jsx`, the target of the skip link). Pages must not render their own `<main>`.
 
@@ -53,4 +54,6 @@ CI runs on Node 22.
 
 ## CI/CD (`.github/workflows/ci.yml`)
 
-`test-and-build` (lint, test, build, upload `dist/`) runs on every push and PR. Then `build-and-push-image` runs only for pushes to `develop` or `master`. It pushes `ghcr.io/llefranc01/portfolio-pipeline:<branch>` and `:<branch>-<short sha>` using `GITHUB_TOKEN`; it's the only job with `packages: write`. Then `deploy-staging` (develop) or `deploy-production` (master) runs. Both deploy jobs are placeholder `echo` steps. Work happens on `develop`, and changes reach `master` through PRs.
+`test-and-build` (lint, test, build, upload `dist/`) runs on every push and PR. Then `build-and-push-image` runs only for pushes to `develop` or `master`. It pushes `ghcr.io/llefranc01/portfolio-pipeline:<branch>` and `:<branch>-<short sha>` using `GITHUB_TOKEN`; it's the only job with `packages: write`. Then `deploy-staging` (develop) or `deploy-production` (master) runs. Both deploy jobs are placeholder `echo` steps.
+
+The real hosting is Vercel's GitHub integration, which runs separately from Actions: pushes to `master` deploy to production and other branches get preview URLs. It isn't gated on CI. Work happens on `develop`, and changes reach `master` through PRs.
