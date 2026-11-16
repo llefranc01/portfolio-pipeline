@@ -265,11 +265,15 @@ export default function Resume() {
             tabIndex={-1}
           >
             <SectionHeader index="01" title="Technical Proficiencies" />
-            <div className="resume-skill-grid">
+            {/* Bootstrap grid: one column on phones, two from the sm
+                breakpoint (576px) up. The gutter starts at gx-4 because
+                a row's negative margins are half the gutter: gx-5 (-24px)
+                would overflow the 16px phone padding and scroll sideways. */}
+            <div className="row gx-4 gx-sm-5 gy-4">
               {SKILLS.map((group) => (
-                <div key={group.label} className="resume-skill-group">
+                <div key={group.label} className="col-12 col-sm-6">
                   <div className="resume-skill-label">{group.label}</div>
-                  <div className="resume-chip-row">
+                  <div className="d-flex flex-wrap gap-2">
                     {group.items.map((item) => (
                       <span key={item} className="resume-chip">
                         {item}

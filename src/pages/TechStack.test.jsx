@@ -54,9 +54,14 @@ describe('TechStack page', () => {
     expect(within(detailPanel()).getByText('Human checkpoint')).toBeInTheDocument()
   })
 
-  test('deploy steps are still described as placeholders', () => {
+  test('Deploy stage shows Vercel as the live host', () => {
     renderAt('/stack')
-    expect(screen.getByText(/Deploy steps are currently placeholders/)).toBeInTheDocument()
+    const deployStage = screen.getByRole('listitem', { name: 'Deploy' })
+    fireEvent.click(within(deployStage).getByRole('button', { name: 'Vercel' }))
+
+    expect(within(detailPanel()).getByText(/push to master builds the site/)).toBeInTheDocument()
+    // The GitHub Actions deploy jobs are still placeholders, and the page says so.
+    expect(screen.getByText(/staging and production jobs are still placeholders/)).toBeInTheDocument()
   })
 
   test('nodes are keyboard-reachable buttons with decorative icons', () => {
